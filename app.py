@@ -4,11 +4,11 @@
 # try not to use python app.py to run the project
 # use control C to quit the currently running server
 import os
-from flask import Flask # micro web framework
+from flask import Flask, jsonify # micro web framework
 from flask_sqlalchemy import SQLAlchemy # Flask extension for DB ORM
 from config import DevelopmentConfig # settings modeule (DB URI, debug mode)
-
-db = SQLAlchemy() # initialise SQLAlchemy isntance globally (binded into the app later)
+from models import db
+from routes.book_routes import book_bp
 
 """
 app factory - creates and configures Flask app instance each time the server is run
@@ -17,11 +17,27 @@ helps with:
 - blueprints
 - extensions i.e., SQLAlchemy 
 """
+
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True)     # Create Flask app
     app.config.from_object(DevelopmentConfig) # load settings from our DevelopmentConfig (DB URI, debug mode) defined in config.py
-    db.init_app(app) # bind SQLAlchemy to this app instance, facilitating models (books) interaction with DB
+    app.config['SQLALCHEMY_DATABASE_UI'] = 'sqlite:///instance/books.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app) # bind SQLAlchemy to this app instance, facilitating models (books) interaction with DB - MUST be called before registering the routes (below)
     os.makedirs(app.instance_path, exist_ok=True) # ensure the 'instance' folder exists for SQLite DB
+
+    # Register the blueprint
+    app.register_blueprint(book_bp)
+
+    # Basic HTTP error code handling
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify({"error": "Resource not found"}), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify({"error": "Internal server error"}), 500
 
     @app.route('/')
     def home():
