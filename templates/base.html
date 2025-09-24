@@ -1,1 +1,40 @@
-<!-- Common Layout
+<!-- Common Layout -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} Library Book Management System{% endblock &}</title>
+    <!-- This is optional (i.e., not a must-have for all CRUD apps, but I will include it for this first one just to see how they work): Bootstrap for quick styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/boostrap.min.css" rel="stylesheet">
+<head>
+<body>
+
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/books">Library Book Management System</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class-="nav-item">
+                        <a class="nav-link" href="/books">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/books#add">Add Book</a>
+                    </li>
+                </ul>
+            </div>
+       </div>
+       </nav>
+
+        <!-- Main Content -->
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+
+    <!-- Optional: Boostrap JS bundle (again i'll use this here to teach myself more about this and learn how to implement in future CRUD apps I develop) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

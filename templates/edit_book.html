@@ -1,1 +1,25 @@
-<!-- Edit book form
+<!-- Edit book form -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Book</title>
+</head>
+<body>
+    <h1>Edit Book</h1>
+    <form action="{{ url_for('book_bp.update_book', book_id=book.id) }}" method="POST">
+        <label>Title:</label>
+        <input type="text" name="title" value="{{ book.title }}" required><br>
+
+        <label>Author:</label>
+        <input type="text" name="author" value="{{ book.author }}" required><br>
+
+        <label>Year:</label>
+        <input type="number" name="year" value="{{ book.year }}" required><br>
+
+        <button type="submit">Update Book</button>
+    </form>
+
+    <a href="{{ url_for('book_bp.get_books') }}">Back to List</a>
+</body>
+</html>

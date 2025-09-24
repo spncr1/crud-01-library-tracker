@@ -22,13 +22,13 @@ helps with:
 def create_app():
     app = Flask(__name__, instance_relative_config=True)     # Create Flask app
     app.config.from_object(DevelopmentConfig) # load settings from our DevelopmentConfig (DB URI, debug mode) defined in config.py
-    app.config['SQLALCHEMY_DATABASE_UI'] = 'sqlite:///instance/books.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/books.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app) # bind SQLAlchemy to this app instance, facilitating models (books) interaction with DB - MUST be called before registering the routes (below)
     os.makedirs(app.instance_path, exist_ok=True) # ensure the 'instance' folder exists for SQLite DB
 
     # Register the blueprint
-    app.register_blueprint(book_bp)
+    app.register_blueprint(book_bp, url_prefix='/books')
 
     # Basic HTTP error code handling
     @app.errorhandler(404)

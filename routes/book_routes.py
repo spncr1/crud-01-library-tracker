@@ -1,7 +1,12 @@
 # CRUD routes for books
 # Flask routes for our four main book management system functions:
 # 1. GET /books, 2. POST /books, 3. PUT /books/<id>, 4. DELETE /books/<id>
-from flask import Blueprint, jsonify, request
+# ------------------------------
+# PROJECT UPDATE: for Day 3, we are integrating the backend with HTML templates using Jinja2, instead of returning JSON.
+# This allows the frontend MVP to display books in a table, and handle user form submissions directly via the browser.
+# JSON endpoints are still useful for future API use, but for the MVP UI, render_templates is needed as a replacement
+# ------------------------------
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import db
 from models.book import Book # importing the Book model and db session
 
@@ -9,119 +14,122 @@ from models.book import Book # importing the Book model and db session
 book_bp = Blueprint('book_bp', __name__)
 
 # Route: GET /books
-@book_bp.route('/books', methods=['GET'])
+@book_bp.route('/', methods=['GET'])
 def get_books():
     """
-    Fetch all books from the database and return as JSON.
+    Fetch all books from the database and render the HTML table.
+    Replaces the previous JSON response (placeholder logic) with Jinja2 template rendering, as part of Day 3's tasks.
+    Now supports optional search query via ?query= as well.
     """
-    books = Book.query.all() # get all bookl records
-    # convert each Book object into a dictionary (K,V pairs)
-    books_list = [ # using a list of dicts to store book information
-        {
-            "id" : book.id,
-            "title" : book.title,
-            "author" : book.author,
-            "genre" : book.genre,
-            "borrowed_status" : book.borrowed_status,
-            "year" : book.year
-        }
-        for book in books
-    ]
-    return jsonify(books_list), 200 # HTTP code indicating that the client request has successfully been processed
+    search_query = request.args.get("query" "").strip()
+
+    if search_query:
+        # Filter by title or author (case-insensitive)
+        books = Book.query.filter(
+            (Book.title.ilike(f"%{search_query}")) |
+            (Book.author.ilike(f"{search_query}"))
+        ).all()
+    else:
+        books = Book.query.all()
+    # Pass the book objects directly to index.html
+    # Jinja2 can access attributes like book.title, book.author, etc.
+    return render_template("index.html", books=books, search_query=search_query)
 
 # Route: POST /books
-@book_bp.route('/books', methods=['POST'])
+@book_bp.route('/', methods=['POST'])
 def add_book():
     """
-    Add a new book to the database.
-    Expects JSON body: {"id": "title", "author": "genre": "borrowed status": "year": (year i.e., 2024)}
+    Add a new book to the database via form submission.
+    Expects form data: title, author, genre, borrowed_status, year
+    Redirects back to /books to refresh the list and show the newly added book/s.
     """
-    data = request.get_json() # parse incoming JSON
+
+    # Retrieve form data from the HTML form (not JSON anymore)
+    title = request.form.get('title')
+    author = request.form.get('author')
+    genre = request.form.get('genre')
+    borrowed_status = request.form.get('borrowed_status')
+    year = request.form.get('year')
 
     # Basic validation
-    required_fields = ['title', 'author', 'genre', 'borrowed_status', 'year']
-    if not data or not all (field in data for field in required_fields):
-        return jsonify({"error" : "Missing required fields: title, author"}), 400
 
+    if not title or not author:
+        # If missing required fields, redirect back (will implement flash message later)
+        return redirect(url_for('book_bp.get_books'))
+
+    # Create new Book instance
     new_book = Book(
-        title=data['title'],
-        author=data['author'],
-        genre=data['genre'],
-        borrowed_status=data['borrowed_status'],
-        year=data.get('year')
+        title=title,
+        author=author,
+        genre=genre,
+        borrowed_status=borrowed_status,
+        year=year
     )
 
-    # wrapping DB commits in a try-except block for robust error handling (will stay consistent with this for all other commits below)
+    # save to DB - using try-except block for robust error handling in case something goes wrong
     try:
         db.session.add(new_book)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Database error", "details": str(e)}), 500 # 500 = internal server error
+        # For MVP, we redirect; in production, an error page may be displayed
+        return redirect(url_for('book_bp.get_books'))
 
-    return jsonify({
-        "id": new_book.id,
-        "title": new_book.title,
-        "author": new_book.author,
-        "genre": new_book.genre,
-        "borrowed_status": new_book.borrowed_status,
-        "year": new_book.year
-    }), 201 # 201 = HTTP code for "CREATED"
+    # Redirect to /books to show updated list (full page reload)
+    return redirect(url_for('book_bp.get_books'))
 
-# Route: PUT /books/<id>
-@book_bp.route('/books/<int:book_id>', methods=['PUT'])
+# Route: PUT /books/<id>/edit
+@book_bp.route('/<int:book_id>/edit', methods=['GET'])
+def edit_book(book_id):
+    """
+    Render the edit form for a specific book.
+    Fetches the current book data and passes it to the template.
+    """
+    book = Book.query.get_or_404(book_id) # fetch book or 404 if not found
+    return render_template("edit_book.html", book=book)
+
+# Route: PUT /books/<id>/update
+@book_bp.route('/<int:book_id>/update', methods=['POST'])
 def update_book(book_id):
     """
-    Update an existing book in the database by its ID.
-    Expects JSON body: {"title": "...", "author": "...", "genre": "...", "borrowed_status": ..., "year": ...}
+    Process the form submission and update the book in the DB.
+    NOTE: HTML forms do not support PUT natively, so we use POST instead of PUT here for simplicity.
+    Expects form fields same as add_book.
     """
 
-    data = request.get_json()
-
     # Fetch the book from the DB
-    book = Book.query.get(book_id)
-    if not book:
-        return jsonify({"error": f"Bookl with ID: {book_id} not found"}), 404 # returning HTTP code 404 to indicate an error occurred (unsucessful)
+    book = Book.query.get_or_404(book_id) # Fetch book or 404 if not found
 
-    # Update files if they exist in the incoming JSON
-    book.title = data.get('title', book.title)
-    book.author = data.get('author', book.author)
-    book.genre = data.get('genre', book.genre)
-    book.borrowed_status = data.get('borrowed_status', book.borrowed_status)
-    book.year = data.get('year', book.year)
+    # Update fields if they exist in the form submission
+    book.title = request.form.get('title', book.title)
+    book.author = request.form.get('author', book.author)
+    book.genre = request.form.get('genre', book.genre)
+    book.borrowed_status = request.form.get('borrowed_status', book.borrowed_status)
+    book.year = request.form.get('year', book.year)
 
     try:
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Database error", "details": str(e)}), 500
+        flash(f"Error updating book: {e}")
 
-    return jsonify({
-        "id": book.id,
-        "title": book.title,
-        "author": book.author,
-        "genre": book.genre,
-        "borrowed_status": book.borrowed_status,
-        "year": book.year
-    }), 200 # 200 = OK
+    return redirect(url_for('book_bp.get_books'))
 
 # Route: DELETE /books/<id>
-@book_bp.route('/books/<int:book_id>', methods=['DELETE'])
+@book_bp.route('/<int:book_id>/delete', methods=['POST'])
 def delete_book(book_id):
     """
-    Delete a book from the database using its ID.
-    Simplest way to remove a book from the system is just entering its ID (better than having to type the title manually).
+    Delete a book from the database using a form submission or delete button (can implement later).
+    NOTE: HTML forms do not suppoort DELETE natively, so we use POST here instead.
     """
     book = Book.query.get(book_id)
-
     if not book:
-        return jsonify({"error": f"No book found with ID: {book_id}"}), 404
+        return redirect(url_for('book_bp.get_books'))
 
     try:
         db.session.delete(book)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Database error", "details": str(e)}), 500
 
-    return jsonify({"message": f"Book with ID: {book_id} has been deleted from the Library Database."}), 200 # returns JSON
+    return redirect(url_for('book_bp.get_books'))
