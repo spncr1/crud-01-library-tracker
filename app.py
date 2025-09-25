@@ -4,11 +4,11 @@
 # try not to use python app.py to run the project
 # use control C to quit the currently running server
 import os
-from flask import Flask, jsonify # micro web framework
+from flask import Flask, jsonify, redirect, url_for # micro web framework
 from flask_sqlalchemy import SQLAlchemy # Flask extension for DB ORM
 from config import DevelopmentConfig # settings modeule (DB URI, debug mode)
-from models import db
 from routes.book_routes import book_bp
+from models import db
 
 """
 app factory - creates and configures Flask app instance each time the server is run
@@ -18,14 +18,17 @@ helps with:
 - extensions i.e., SQLAlchemy 
 """
 
-
 def create_app():
     app = Flask(__name__, instance_relative_config=True)     # Create Flask app
-    app.config.from_object(DevelopmentConfig) # load settings from our DevelopmentConfig (DB URI, debug mode) defined in config.py
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/books.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db.init_app(app) # bind SQLAlchemy to this app instance, facilitating models (books) interaction with DB - MUST be called before registering the routes (below)
     os.makedirs(app.instance_path, exist_ok=True) # ensure the 'instance' folder exists for SQLite DB
+
+    # load settings from our DevelopmentConfig (DB URI, debug mode) defined in config.py
+    app.config.from_object(DevelopmentConfig)
+
+    db_path = os.path.join(app.instance_path, "books.db")
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+
+    db.init_app(app) # bind SQLAlchemy to this app instance, facilitating models (books) interaction with DB - MUST be called before registering the routes (below)
 
     # Register the blueprint
     app.register_blueprint(book_bp, url_prefix='/books')
@@ -41,7 +44,7 @@ def create_app():
 
     @app.route('/')
     def home():
-        return "Hello, World!" # Flask takes this return string and sends it as HTML to the browser
+        return redirect(url_for('book_bp.get_books')) # Flask takes this return string and sends it as HTML to the browser
 
     # Return the app so it can be run by the command line or other scripts
     return app

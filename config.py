@@ -3,16 +3,12 @@
 
 import os
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
 class Config:
     DEBUG = False
     TESTING = False
-
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(BASE_DIR, "instance", "books.db"))
-
-    # Avoid SQLAlchemy warning and extra overhead
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False # Avoid SQLAlchemy warning and extra overhead
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    # SQLite DB will live inside Flask's instance folder, relative to app root
+    SQLALCHEMY_DATABASE_URI = None # we don't need to set this here, will be set dynamically in create_app() from app.py

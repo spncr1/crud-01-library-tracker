@@ -21,7 +21,7 @@ def get_books():
     Replaces the previous JSON response (placeholder logic) with Jinja2 template rendering, as part of Day 3's tasks.
     Now supports optional search query via ?query= as well.
     """
-    search_query = request.args.get("query" "").strip()
+    search_query = request.args.get("query", "").strip()
 
     if search_query:
         # Filter by title or author (case-insensitive)
@@ -45,16 +45,16 @@ def add_book():
     """
 
     # Retrieve form data from the HTML form (not JSON anymore)
-    title = request.form.get('title')
-    author = request.form.get('author')
+    title = request.form.get('title', '').strip()
+    author = request.form.get('author', '').strip()
     genre = request.form.get('genre')
     borrowed_status = request.form.get('borrowed_status')
     year = request.form.get('year')
 
-    # Basic validation
-
+    # Basic input validation so user knows why their submission failed
     if not title or not author:
         # If missing required fields, redirect back (will implement flash message later)
+        flash("Both Title and Author are requried!", "error")
         return redirect(url_for('book_bp.get_books'))
 
     # Create new Book instance
@@ -101,11 +101,18 @@ def update_book(book_id):
     book = Book.query.get_or_404(book_id) # Fetch book or 404 if not found
 
     # Update fields if they exist in the form submission
-    book.title = request.form.get('title', book.title)
-    book.author = request.form.get('author', book.author)
+    title = request.form.get('title', '').strip()
+    author = request.form.get('author', '').strip()
     book.genre = request.form.get('genre', book.genre)
     book.borrowed_status = request.form.get('borrowed_status', book.borrowed_status)
     book.year = request.form.get('year', book.year)
+
+    if not title or not author:
+        flash("Both Title and Author are required!", "error")
+        return redirect(url_for('book_bp.edit_book', book_id=book.id))
+
+    book.title = title
+    book.author = author
 
     try:
         db.session.commit()
