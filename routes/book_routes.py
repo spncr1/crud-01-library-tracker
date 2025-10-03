@@ -35,7 +35,12 @@ def get_books():
     # Jinja2 can access attributes like book.title, book.author, etc.
     return render_template("index.html", books=books, search_query=search_query)
 
-# Route: POST /books
+# GET Add Book Page
+@book_bp.route('/add', methods=['GET'])
+def add_book_page():
+    return render_template('add_book.html')
+
+# POST Add Book
 @book_bp.route('/', methods=['POST'])
 def add_book():
     """
@@ -78,7 +83,7 @@ def add_book():
     # Redirect to /books to show updated list (full page reload)
     return redirect(url_for('book_bp.get_books'))
 
-# Route: PUT /books/<id>/edit
+# GET Edit Book Page
 @book_bp.route('/<int:book_id>/edit', methods=['GET'])
 def edit_book(book_id):
     """
@@ -88,7 +93,7 @@ def edit_book(book_id):
     book = Book.query.get_or_404(book_id) # fetch book or 404 if not found
     return render_template("edit_book.html", book=book)
 
-# Route: PUT /books/<id>/update
+# POST Update Book
 @book_bp.route('/<int:book_id>/update', methods=['POST'])
 def update_book(book_id):
     """
@@ -122,7 +127,13 @@ def update_book(book_id):
 
     return redirect(url_for('book_bp.get_books'))
 
-# Route: DELETE /books/<id>
+# GET Delete Book Page
+@book_bp.route('/delete', methods=['GET'])
+def delete_book_page():
+    books = Book.query.all()
+    return render_template('delete_book.html', books=books)
+
+# POST Delete Book
 @book_bp.route('/<int:book_id>/delete', methods=['POST'])
 def delete_book(book_id):
     """

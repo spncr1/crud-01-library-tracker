@@ -1,93 +1,16 @@
-<!-- Book list, add & search forms -->
 {% extends "base.html" %}
 
-{% block title %}Library Books{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-    <h1 class="mb-4">Library Books</h1>
-
-    <!-- Books Table -->
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Genre</th>
-                <th>Status</th>
-                <th>Year</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for book in books %}
-            <tr>
-                <td>{{ book.title }}</td>
-                <td>{{ book.author }}</td>
-                <td>{{ book.genre }}</td>
-                <td>{{ book.borrowed_status }}</td>
-                <td>{{ book.year }}</td>
-                <td>
-                    <!-- Edit button -->
-                    <a href="{{ url_for('book_bp.edit_page', book_id=book.id) }}" class="btn btn-sm btn-warning">Edit</a>
-
-                    <!-- Delete button -->
-                    <form action="{{ url_for('book_bp.delete_book', book_id=book.id) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this book?')">
-                            Delete
-                        </button>
-                    </form>
-                </td>
-            </tr>
-            {% else %}
-            <!-- Show message if no books in DB -->
-            <tr>
-                <td colspan="6" class="text-center text-muted">No books found. Add your first book to the library system!</td> <!-- 6 for 6 different columns in the table -->
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Add Book Form -->
-    <h2 id="add" class="mt-5 mt-3">Add a New Book</h2>
-    <form action="{{ url_for('book_bp.add_book') }}" method="POST" class="mb-5">
-        <div class="mb-3">
-            <label for="title" class="form-label">Title</label>
-            <input type="text" name="title" id="title" class="form-control" required>
-        </div>
-
-        <div class="mb-3">
-            <label for="author" class="form-label">Author</label>
-            <input type="text" name="author" id="author" class="form-control" required>
-        </div>
-
-        <div class="mb-3">
-            <label for="author" class="form-label">Genre</label>
-            <input type="text" name="genre" id="genre" class="form-control">
-        </div>
-
-        <div class="mb-3">
-            <label for="borrowed_status" class="form-label">Status</label>
-            <select name="borrowed_status" id="borrowed_status" class="form-select">
-                <option value="Unborrowed">Unborrowed</option>
-                <option value="Borrowed">Borrowed</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label for="year" class="form-label">Year</label>
-            <input type="number" name="year" id="year" class="form-control">
-        </div>
-
-        <button type="submit" class="btn btn-primary">Add Book</button>
+    <!-- Search Bar -->
+    <form action="{{ url_for('book_bp.get_books') }}" method="GET" class="d-flex">
+        <input type="text" name="query" class="form-control me-2" placeholder="Search by title or author" value="{{ search_query or '' }}">
+        <button type="submit" class="btn btn-outline-primary">Search</button>
     </form>
 
-    <!-- Search Form -->
-    <form action ="{{ url_for('book_bp.get_books') }}" method="GET" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="query" class="form-control"
-                   placeholder="Search by title or author"
-                   value="{{ search_query or '' }}">
-            <button type="submit" class="btn btn-outline-primary">Search</button>
-        </div>
-    </form>
+<!-- Welcome message -->
+<div class="text-center mt-5">
+    <h1>Welcome to the Library Book Management System!</h1>
+</div>
 {% endblock %}

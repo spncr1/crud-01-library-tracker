@@ -50,7 +50,7 @@ tbody td {
 }
 
 tbody tr:hover {
-    background-colour: #f1f1f1;
+    background-color: #f1f1f1;
 }
 
 /* ==== Forms ==== */
@@ -73,18 +73,18 @@ button {
 }
 
 button.btn-primary {
-    background-colour: #007bff;
-    colour: #fff;
+    background-color: #007bff;
+    color: #fff;
 }
 
 button.btn-warning {
-    background-colour: #ffc107;
-    colour: #333;
+    background-color: #ffc107;
+    color: #333;
 }
 
 button.btn-danger {
-    background-colour: #dc3545;
-    colour: #fff;
+    background-color: #dc3545;
+    color: #fff;
 }
 
 /* ==== Flash messages ==== */
@@ -95,13 +95,13 @@ button.btn-danger {
 }
 
 .flash-message.error {
-    background-colour: #f8d7da;
+    background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
 
 .flash-message {
-    background-colour: #d4edda;
+    background-color: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
 }
@@ -117,5 +117,5 @@ button.btn-danger {
 }
 
 .text-muted {
-    colour: #6c757d;
+    color: #6c757d;
 }
